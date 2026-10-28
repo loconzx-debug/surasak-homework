@@ -4,134 +4,541 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบตรวจเช็คการบ้าน & ตารางเรียน - โรงเรียนสุรศักดิ์มนตรี</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Prompt จาก Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
-        body { font-family: 'Prompt', sans-serif; background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 30%, #e0c3fc 60%, #8ec5fc 100%); background-attachment: fixed; min-height: 100vh; overflow-x: hidden; }
-        .glass-card { background: rgba(255, 255, 255, 0.45); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.6); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.12); }
-        .glass-sidebar { background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-right: 1px solid rgba(255, 255, 255, 0.8); }
-        .rainbow-text { background: linear-gradient(90deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3, #54a0ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .rainbow-bg { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #a1c4fd 100%); }
+        body {
+            font-family: 'Prompt', sans-serif;
+            background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 30%, #e0c3fc 60%, #8ec5fc 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphic Aero Effect */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.12);
+        }
+
+        .glass-sidebar {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-right: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .glass-modal {
+            background: rgba(255, 253, 240, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .rainbow-text {
+            background: linear-gradient(90deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3, #54a0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .rainbow-bg {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #a1c4fd 100%);
+        }
+
+        .paper-note {
+            background-color: #fcf8e3;
+            background-image: radial-gradient(#e5d9b6 0.75px, transparent 0.75px);
+            background-size: 12px 12px;
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.3); }
+        ::-webkit-scrollbar-thumb { background: rgba(168, 85, 247, 0.5); border-radius: 10px; }
     </style>
 </head>
 <body class="p-3 md:p-6 text-gray-800">
 
-    <div class="max-w-4xl mx-auto space-y-6">
-        <div class="glass-card p-4 md:p-5 rounded-3xl text-center">
-            <h1 class="text-xl md:text-2xl font-bold rainbow-text flex items-center justify-center gap-2">
-                <i class="fa-solid fa-graduation-cap text-indigo-500"></i> ระบบเช็กลิสต์การบ้านออนไลน์ (ม.3/13)
-            </h1>
-            <p class="text-xs text-gray-600 mt-1">ข้อมูลเชื่อมต่อแบบ Real-time เพื่อนทุกคนเปิดมาเห็นตรงกัน 🚀</p>
-        </div>
-
-        <div class="glass-card rounded-3xl p-4 md:p-6 space-y-4">
-            <div class="flex items-center justify-between">
-                <h2 class="text-lg font-bold text-gray-800">📝 รายการการบ้านทั้งหมด</h2>
-                <button onclick="fetchTodos()" class="text-xs bg-indigo-500 text-white px-3 py-1.5 rounded-xl"><i class="fa-solid fa-rotate"></i> รีเฟรชข้อมูล</button>
+    <!-- Slide Sidebar Menu (เมนูเปิดซ้าย) -->
+    <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 hidden transition-opacity"></div>
+    <div id="sidebar" class="fixed top-0 left-0 h-full w-72 glass-sidebar z-50 transform -translate-x-full transition-transform duration-300 ease-in-out p-5 flex flex-col justify-between shadow-2xl">
+        <div class="space-y-6">
+            <div class="flex justify-between items-center border-b border-gray-200/60 pb-3">
+                <h2 class="text-base font-bold rainbow-text flex items-center gap-2">
+                    <i class="fa-solid fa-bars-staggered"></i> เมนูหลัก 🌈
+                </h2>
+                <button onclick="toggleSidebar()" class="text-gray-500 hover:text-red-500 text-lg">✕</button>
             </div>
 
-            <!-- ฟอร์มเพิ่มการบ้าน (ทุกคนพิมพ์ได้ หรือจะจำกัดเฉพาะ Admin ก็ได้ครับ) -->
-            <form id="todo-form" class="bg-white/70 p-4 rounded-2xl border border-white space-y-3">
-                <div class="text-xs font-bold text-indigo-600">➕ เพิ่มรายการการบ้านใหม่</div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <input type="text" id="todo-subject" placeholder="📌 วิชา (เช่น ค23102)" required class="px-3 py-2 text-xs rounded-xl border border-gray-200 bg-white">
-                    <input type="date" id="todo-duedate" required class="px-3 py-2 text-xs rounded-xl border border-gray-200 bg-white">
-                    <input type="text" id="todo-task" placeholder="📝 งานที่ต้องทำ" required class="px-3 py-2 text-xs rounded-xl border border-gray-200 bg-white">
+            <nav class="space-y-2 text-xs font-medium text-gray-700">
+                <button onclick="switchTab('homework')" class="w-full text-left p-3 rounded-2xl hover:bg-white/80 transition flex items-center gap-3 shadow-sm bg-white/50">
+                    <span class="text-lg">📚</span> เช็คการบ้าน-รายงานประจำวัน
+                </button>
+                <button onclick="switchTab('classes')" class="w-full text-left p-3 rounded-2xl hover:bg-white/80 transition flex items-center gap-3">
+                    <span class="text-lg">📸</span> เช็คการเรียนการสอนแต่ละคาบ
+                </button>
+                <button onclick="switchTab('attendance')" class="w-full text-left p-3 rounded-2xl hover:bg-white/80 transition flex items-center gap-3">
+                    <span class="text-lg">🏥</span> เช็คขาด-ลาป่วย (ผู้ปกครอง/นักเรียน)
+                </button>
+                <button onclick="switchTab('qrcode')" class="w-full text-left p-3 rounded-2xl hover:bg-white/80 transition flex items-center gap-3">
+                    <span class="text-lg">📱</span> QR Code วิชาต่างๆ (เทอม 1-2)
+                </button>
+                <button onclick="switchTab('developer')" class="w-full text-left p-3 rounded-2xl hover:bg-white/80 transition flex items-center gap-3">
+                    <span class="text-lg">⭐</span> เยี่ยมชมผู้พัฒนาระบบ
+                </button>
+            </nav>
+        </div>
+
+        <div class="text-[11px] text-gray-500 text-center border-t border-gray-200/60 pt-3">
+            โรงเรียนสุรศักดิ์มนตรี ม.3/13
+        </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <div class="max-w-6xl mx-auto space-y-6">
+
+        <!-- Top Header Bar -->
+        <div class="flex justify-between items-center gap-2">
+            <div class="flex items-center gap-2">
+                <button onclick="toggleSidebar()" class="glass-card px-3.5 py-2 rounded-2xl text-xs font-bold text-indigo-700 hover:bg-white transition shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-bars text-sm"></i> เมนู
+                </button>
+                <a href="#" class="glass-card px-4 py-2 rounded-2xl text-xs md:text-sm font-medium text-indigo-700 hover:bg-white/80 transition shadow-sm flex items-center gap-2">
+                    <i class="fa-regular fa-hospital"></i> เว็บไซต์โรงเรียน 🏫
+                </a>
+            </div>
+            
+            <span id="role-badge" class="bg-gray-200/80 text-gray-600 text-xs px-3 py-1.5 rounded-full border border-gray-300 font-medium">
+                👤 ผู้ใช้ทั่วไป
+            </span>
+        </div>
+
+        <!-- กล่องหัวข้อชื่อระบบ -->
+        <div class="glass-card p-4 md:p-5 rounded-3xl text-center md:text-left">
+            <h1 class="text-xl md:text-2xl font-bold rainbow-text flex items-center justify-center md:justify-start gap-2">
+                <i class="fa-solid fa-graduation-cap text-indigo-500"></i> ระบบตรวจเช็คการบ้าน (ม.3/13 ห้อง 6316)
+            </h1>
+            <p class="text-xs text-gray-600 mt-1">โรงเรียนสุรศักดิ์มนตรี ภาคเรียนที่ 2 ปีการศึกษา 2569</p>
+        </div>
+
+        <!-- TAB 1: เช็คการบ้าน + ตารางเรียน (หน้าหลัก) -->
+        <div id="tab-homework" class="space-y-6">
+            <!-- ตารางเรียนประจำสัปดาห์ -->
+            <div class="glass-card rounded-3xl p-4 md:p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rainbow-bg rounded-2xl flex items-center justify-center text-white text-xl shadow-md">📅</div>
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-800">ตารางเรียนประจำสัปดาห์ 📚✨</h2>
+                            <p class="text-xs text-gray-500">ครูประจำชั้น: ครูรัญชนา นามเจริญสุข <span id="admin-table-hint" class="text-amber-600 font-semibold hidden">(โหมดแอดมิน: กดที่ช่องเพื่อแก้ไขข้อมูลได้)</span></p>
+                        </div>
+                    </div>
                 </div>
-                <button type="submit" id="submit-btn" class="w-full bg-pink-500 text-white font-medium py-2 rounded-xl text-xs shadow-md hover:bg-pink-600">บันทึกและส่งให้เพื่อนเห็นทันที</button>
+
+                <div class="overflow-x-auto rounded-2xl border border-indigo-100 shadow-inner bg-white/50">
+                    <table class="w-full text-xs text-center border-collapse">
+                        <thead>
+                            <tr class="bg-indigo-600 text-white font-medium">
+                                <th class="p-2.5 border-r border-indigo-500 min-w-[70px]">วัน / คาบ</th>
+                                <th class="p-2 border-r border-indigo-500 min-w-[90px]">1<br><span class="text-[10px] opacity-80">08.10-09.00</span></th>
+                                <th class="p-2 border-r border-indigo-500 min-w-[90px]">2<br><span class="text-[10px] opacity-80">09.00-09.50</span></th>
+                                <th class="p-2 border-r border-indigo-500 min-w-[90px]">3<br><span class="text-[10px] opacity-80">09.50-10.40</span></th>
+                                <th class="p-2 border-r border-indigo-500 min-w-[75px]">4<br><span class="text-[10px] opacity-80">10.40-11.30</span></th>
+                                <th class="p-2 border-r border-indigo-500 min-w-[90px]">5<br><span class="text-[10px] opacity-80">11.30-12.20</span></th>
+                                <th class="p-2 border-r border-indigo-500 min-w-[90px]">6<br><span class="text-[10px] opacity-80">12.20-13.10</span></th>
+                                <th class="p-2 border-r border-indigo-500 min-w-[90px]">7<br><span class="text-[10px] opacity-80">13.10-14.00</span></th>
+                                <th class="p-2 border-r border-indigo-500 min-w-[90px]">8<br><span class="text-[10px] opacity-80">14.00-14.50</span></th>
+                                <th class="p-2 border-r border-indigo-500 min-w-[90px]">9<br><span class="text-[10px] opacity-80">14.50-15.40</span></th>
+                                <th class="p-2 border-r border-indigo-500 min-w-[90px]">10<br><span class="text-[10px] opacity-80">15.40-16.30</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="schedule-body" class="divide-y divide-gray-200/60 font-normal text-gray-700"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- เช็คลิสต์การบ้าน -->
+            <div class="glass-card rounded-3xl p-4 md:p-6">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 rainbow-bg rounded-2xl flex items-center justify-center text-white text-xl shadow-md">📚</div>
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800">เช็คลิสต์การบ้านประจำวัน 📝🎈</h2>
+                        <p id="date-display" class="text-xs text-indigo-600 font-medium">วันปัจจุบัน...</p>
+                    </div>
+                </div>
+
+                <!-- ฟอร์มแอดมินสั่งการบ้าน -->
+                <form id="todo-form" class="bg-white/70 p-4 rounded-2xl border border-white/80 mb-5 shadow-sm space-y-3 hidden">
+                    <div class="text-xs font-bold text-indigo-600 mb-1">🛡️ Admin: สั่งการบ้านเพิ่มประจำวัน</div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <input type="text" id="todo-subject" placeholder="📌 วิชา (เช่น ค23102)" required class="px-3 py-2 text-xs rounded-xl border border-gray-200 bg-white">
+                        <input type="date" id="todo-duedate" required class="px-3 py-2 text-xs rounded-xl border border-gray-200 bg-white">
+                        <input type="text" id="todo-task" placeholder="📝 งานที่ต้องทำ (เช่น แบบฝึกหัดบทที่ 1)" required class="px-3 py-2 text-xs rounded-xl border border-gray-200 bg-white">
+                    </div>
+                    <button type="submit" class="w-full bg-pink-500 text-white font-medium py-2 rounded-xl text-xs shadow-md hover:bg-pink-600">เพิ่มรายการการบ้านประจำวัน</button>
+                </form>
+
+                <div class="flex items-center justify-between mb-3 text-xs">
+                    <span id="task-counter" class="text-gray-500 font-medium">📌 การบ้านทั้งหมด 0 รายการ</span>
+                    <div class="flex gap-1.5">
+                        <button onclick="filterTodos('all')" class="px-2.5 py-1 rounded-lg border border-pink-300 bg-white/50 text-pink-600 text-[11px]">ทั้งหมด</button>
+                        <button onclick="filterTodos('active')" class="px-2.5 py-1 rounded-lg border border-indigo-300 bg-white/50 text-indigo-600 text-[11px]">ยังไม่เสร็จ</button>
+                        <button onclick="filterTodos('completed')" class="px-2.5 py-1 rounded-lg border border-emerald-300 bg-white/50 text-emerald-600 text-[11px]">เสร็จแล้ว</button>
+                    </div>
+                </div>
+
+                <ul id="todo-list" class="space-y-2.5"></ul>
+                <div id="empty-state" class="text-center py-8 text-gray-400 text-xs hidden">🎉 ไม่มีภาระงานการบ้านในขณะนี้!</div>
+            </div>
+        </div>
+
+        <!-- TAB 2: เช็คการเรียนการสอนแต่ละคาบ -->
+        <div id="tab-classes" class="glass-card rounded-3xl p-5 hidden space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">📸 สรุปภาพการเรียนการสอนประจำวัน</h2>
+                <button id="btn-add-class-img" onclick="document.getElementById('class-img-input').click()" class="bg-indigo-600 text-white text-xs px-3 py-1.5 rounded-xl hidden">
+                    + ถ่ายรูป/อัปโหลดภาพ (Admin)
+                </button>
+                <input type="file" id="class-img-input" accept="image/*" class="hidden" onchange="uploadClassImage(event)">
+            </div>
+            <div id="class-images-gallery" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </div>
+
+        <!-- TAB 3: เช็คขาด-ลาป่วย -->
+        <div id="tab-attendance" class="glass-card rounded-3xl p-5 hidden space-y-4">
+            <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">🏥 รายงานการขาด-ลาป่วยประจำวัน</h2>
+            
+            <form id="attendance-admin-form" onsubmit="saveAttendance(event)" class="bg-white/70 p-4 rounded-2xl border border-white space-y-3 hidden">
+                <div class="text-xs font-bold text-indigo-600">🛡️ Admin: อัปเดตสถิติตามวัน</div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <input type="date" id="att-date" required class="px-3 py-2 text-xs rounded-xl border border-gray-200 bg-white">
+                    <input type="number" id="att-present" placeholder="จำนวนคนมา (เช่น 40)" required class="px-3 py-2 text-xs rounded-xl border border-gray-200 bg-white">
+                    <input type="number" id="att-absent" placeholder="จำนวนคนขาด/ลา (เช่น 0)" required class="px-3 py-2 text-xs rounded-xl border border-gray-200 bg-white">
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 text-white font-medium py-2 rounded-xl text-xs shadow-md">บันทึกสถิติ</button>
             </form>
 
-            <div id="loading" class="text-center text-xs text-gray-500 py-4">กำลังโหลดข้อมูลจากฐานข้อมูล... ⏳</div>
-            <ul id="todo-list" class="space-y-2.5"></ul>
+            <div id="attendance-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </div>
+
+        <!-- TAB 4: QR Code วิชาต่างๆ -->
+        <div id="tab-qrcode" class="glass-card rounded-3xl p-5 hidden space-y-4">
+            <div class="flex justify-between items-center">
+                <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">📱 QR Code ประจำรายวิชา</h2>
+                <button id="btn-add-qr" onclick="openQrModal()" class="bg-indigo-600 text-white text-xs px-3 py-1.5 rounded-xl hidden">
+                    + เพิ่ม QR Code (Admin)
+                </button>
+            </div>
+
+            <div class="flex gap-2">
+                <button id="term1-btn" onclick="switchTerm(1)" class="px-4 py-1.5 rounded-xl bg-white/60 text-gray-700 text-xs font-medium">เทอม 1</button>
+                <button id="term2-btn" onclick="switchTerm(2)" class="px-4 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-medium">เทอม 2</button>
+            </div>
+
+            <div id="qrcode-gallery" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+        </div>
+
+        <!-- TAB 5: เยี่ยมชมผู้พัฒนาระบบ + ให้คะแนนดาว -->
+        <div id="tab-developer" class="glass-card rounded-3xl p-6 hidden space-y-4 text-center">
+            <div class="w-16 h-16 rainbow-bg rounded-full flex items-center justify-center text-2xl mx-auto shadow-md">💻</div>
+            <h2 class="text-xl font-bold text-gray-800">ขอบคุณที่ใส่ใจในเว็บไซต์ของเราครับ! 🙏💖</h2>
+            <p class="text-xs text-gray-600 max-w-md mx-auto">ทางผู้พัฒนาหวังเป็นอย่างยิ่งว่าเว็บไซต์นี้จะช่วยอำนวยความสะดวกในการเช็คการบ้านและตารางเรียนของเพื่อนๆ ทุกคนครับ!</p>
+            
+            <div class="bg-white/80 p-5 rounded-2xl max-w-sm mx-auto shadow-sm border border-amber-100 space-y-3">
+                <p class="text-xs font-bold text-gray-700">⭐ ประเมินความพึงพอใจการใช้งานเว็บไซต์</p>
+                <div class="flex justify-center gap-2 text-2xl text-amber-400 cursor-pointer" id="star-rating">
+                    <span onclick="setRating(1)">★</span>
+                    <span onclick="setRating(2)">★</span>
+                    <span onclick="setRating(3)">★</span>
+                    <span onclick="setRating(4)">★</span>
+                    <span onclick="setRating(5)">★</span>
+                </div>
+                <p id="rating-status" class="text-[11px] text-gray-500">กดดาวเพื่อส่งคะแนนให้แอดมิน</p>
+            </div>
+        </div>
+
+        <!-- กล่องรับรายงานปัญหา & สถิติดาว สำหรับ ADMIN -->
+        <div id="admin-reports-box" class="glass-card rounded-3xl p-4 md:p-6 hidden space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-base font-bold text-rose-600 flex items-center gap-2">🚨 รายงานข้อผิดพลาด & คะแนนประเมินดาว (Admin Only)</h3>
+                <button onclick="clearReports()" class="text-xs bg-rose-100 text-rose-600 px-3 py-1 rounded-lg">ล้างทั้งหมด</button>
+            </div>
+            <div id="admin-stars-summary" class="text-xs bg-amber-50 p-3 rounded-xl font-medium text-amber-800 border border-amber-200">
+                ⭐ คะแนนประเมินจากผู้ใช้งาน: ยังไม่มีคะแนน
+            </div>
+            <div id="reports-list" class="space-y-2 text-xs max-h-48 overflow-y-auto"></div>
+        </div>
+
+        <!-- ปุ่มคู่ข้างล่างสุด -->
+        <div class="flex flex-wrap items-center justify-center gap-3 pb-8">
+            <button onclick="openModal()" class="bg-white/80 hover:bg-white text-rose-500 border border-rose-200 font-medium px-5 py-2.5 rounded-full shadow-md text-xs">
+                🚨 ^รายงานข้อผิดพลาดของระบบเช็ก^ 🙇‍♂️🙇‍♀️
+            </button>
+            <div id="admin-btn-container">
+                <button onclick="openAdminModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-5 py-2.5 rounded-full shadow-md text-xs">
+                    🔑 เข้าสู่ระบบ Admin
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modal 1: รายงานข้อผิดพลาด -->
+    <div id="report-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-modal paper-note rounded-3xl max-w-lg w-full p-5 relative border-2 border-amber-200 shadow-2xl">
+            <button onclick="closeModal()" class="absolute top-4 right-4 w-7 h-7 rounded-full bg-rose-500 text-white flex items-center justify-center text-xs">✕</button>
+            <div class="text-center mb-3">
+                <h3 class="text-base font-bold text-amber-900">📋 รายงานข้อผิดพลาดของเช็กลิสต์</h3>
+            </div>
+            <div class="space-y-2 text-xs text-amber-900 mb-3 bg-amber-50/60 p-3 rounded-2xl border border-amber-200/60 max-h-48 overflow-y-auto leading-relaxed">
+                <p><b>1. รายงานส่งช้า:</b> ส่งไม่ตามเวลาหรือตามวัน (เนื่องจากการภาระงานสับสนหรือติดพันธกิจสำคัญ แอดมินอาจส่งช้ากว่ากำหนดเดิมเล็กน้อย)</p>
+                <p><b>2. มีการส่งผิดพลาด:</b> หรือการเช็คนั้นผิดพลาด มีการตกหล่นของรายการการบ้าน หรือพิมพ์เนื้อหาผิดพลาดคลาดเคลื่อน</p>
+                <p><b>3. วิชาที่ใส่ไม่สอดคล้องกับงาน:</b> ชื่อวิชาหรือรายละเอียดหัวข้อไม่ตรงกับที่ได้รับมอบหมายจริง</p>
+                <p><b>4. เลยวันแจ้งที่กำหนด:</b> ปกติการบ้านจะส่งให้ในวันที่เรียน (ช่วงเวลา 16:00 - 18:00 น.) ทั้งนี้แอดมินอาจส่งช้าเนื่องจากมีการเรียนเพิ่มเติม โดยจะมีแอดมินคนที่ 2 เข้ามาช่วยปฏิบัติงานร่วมด้วยครับ</p>
+                <p><b>5. เว็บไซต์ผิดพลาด เข้าไม่ได้!?:</b> หน้าเว็บไม่โหลด ระบบผิดพลาด หรือไม่แสดงผลบนมือถือ</p>
+            </div>
+            <div class="space-y-2">
+                <label class="block text-xs font-semibold text-amber-900">แจ้งระบบผิดพลาด กรอกตรงนี้เลยครับ-ค่ะ 🙇‍♂️🙇‍♀️</label>
+                <textarea id="error-input" rows="3" placeholder="พิมพ์รายละเอียดปัญหาที่พบเจอตรงนี้..." class="w-full p-2.5 bg-white border border-amber-300 rounded-xl text-xs focus:outline-none"></textarea>
+                <p id="profanity-warn" class="text-[11px] text-red-600 font-semibold hidden">⚠️ ระบบตรวจสอบมีคำหยาบ กรุณาพิมพ์ให้สุภาพ</p>
+                <button onclick="submitError()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-medium py-2 rounded-xl text-xs shadow-md">ส่งรายงานข้อผิดพลาด 🚨</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 2: ใส่ PIN Admin -->
+    <div id="admin-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-xs w-full p-5 text-center shadow-2xl">
+            <h3 class="text-base font-bold text-gray-800 mb-1">เข้าสู่ระบบ Admin</h3>
+            <p class="text-xs text-gray-500 mb-3">กรอก PIN 6 หลัก (012345)</p>
+            <input type="password" id="admin-pin" maxlength="6" placeholder="••••••" class="w-full text-center text-lg tracking-widest p-2 border border-gray-300 rounded-xl mb-3 focus:outline-none">
+            <div class="flex gap-2">
+                <button onclick="closeAdminModal()" class="flex-1 bg-gray-100 text-gray-600 py-1.5 rounded-xl text-xs">ยกเลิก</button>
+                <button onclick="verifyAdminPin()" class="flex-1 bg-indigo-600 text-white py-1.5 rounded-xl text-xs">ยืนยัน</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 3: เพิ่ม QR Code รายวิชา -->
+    <div id="qr-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-xs w-full p-5 shadow-2xl space-y-3 text-xs">
+            <h3 class="font-bold text-gray-800 text-center text-sm">เพิ่ม QR Code วิชา</h3>
+            <div>
+                <label class="block text-gray-600 mb-1">เลือกภาคเรียน:</label>
+                <select id="qr-term-select" class="w-full p-2 border border-gray-200 rounded-xl bg-white">
+                    <option value="1">เทอม 1</option>
+                    <option value="2" selected>เทอม 2</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-gray-600 mb-1">ระบุชื่อวิชา (มุมซ้ายล่าง):</label>
+                <input type="text" id="qr-subject-input" placeholder="เช่น วิชา ค23102" class="w-full p-2 border border-gray-200 rounded-xl">
+            </div>
+            <div>
+                <label class="block text-gray-600 mb-1">เลือกรูปภาพ QR Code (อัลบั้ม):</label>
+                <input type="file" id="qr-file-input" accept="image/*" class="w-full p-1 border border-gray-200 rounded-xl">
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button onclick="closeQrModal()" class="flex-1 bg-gray-100 text-gray-600 py-2 rounded-xl">ยกเลิก</button>
+                <button onclick="saveQrCode()" class="flex-1 bg-indigo-600 text-white py-2 rounded-xl">บันทึก</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // 👉 นำ URL ของ Web App ที่ได้จาก Google Apps Script มาใส่ตรงนี้ครับ
-        const WEB_APP_URL = "ใส่_URL_Google_Apps_Script_ที่นี่";
+        let isAdmin = false;
 
-        document.addEventListener("DOMContentLoaded", fetchTodos);
+        const badWords = ['มึง', 'กู', 'ควย', 'ส้นตีน', 'เหี้ย', 'สัส', 'เย็ด', 'เชี้ย', 'ดอกทอง', 'เอี้ย'];
 
-        async function fetchTodos() {
-            if (WEB_APP_URL.includes("ใส่_URL")) {
-                document.getElementById('loading').innerHTML = "⚠️ กรุณานำ URL ของ Google Apps Script มาใส่ในโค้ดก่อนครับ!";
-                return;
-            }
-            document.getElementById('loading').style.display = 'block';
-            try {
-                let res = await fetch(WEB_APP_URL + "?action=getTodos");
-                let todos = await res.json();
-                renderTodos(todos);
-                document.getElementById('loading').style.display = 'none';
-            } catch (err) {
-                document.getElementById('loading').innerHTML = "❌ เกิดข้อผิดพลาดในการโหลดข้อมูล";
+        let touchstartX = 0;
+        let touchendX = 0;
+        document.addEventListener('touchstart', e => touchstartX = e.changedTouches[0].screenX);
+        document.addEventListener('touchend', e => {
+            touchendX = e.changedTouches[0].screenX;
+            if (touchendX - touchstartX > 70) toggleSidebar(true);
+            if (touchstartX - touchendX > 70) toggleSidebar(false);
+        });
+
+        function toggleSidebar(forceState) {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const shouldOpen = forceState !== undefined ? forceState : sidebar.classList.contains('-translate-x-full');
+            
+            if (shouldOpen) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
             }
         }
 
-        document.getElementById('todo-form').addEventListener('submit', async (e) => {
+        function switchTab(tabId) {
+            ['homework', 'classes', 'attendance', 'qrcode', 'developer'].forEach(id => {
+                document.getElementById('tab-' + id).classList.add('hidden');
+            });
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            toggleSidebar(false);
+        }
+
+        const initialSurasakSchedule = [
+            { day: 'จ.', color: 'bg-yellow-400/30', hover: 'hover:bg-yellow-100/40', slots: [
+                { sub: 'ค23102', teacher: 'ครู ณรงค์ศักดิ์', room: '6316' },
+                { sub: 'อ23102', teacher: 'ครู ปริญญา', room: '6316' },
+                { sub: 'ก23902', teacher: 'ครู ลัลน์ลลิต', room: 'ศูนย์แนะแนว' },
+                { sub: 'พัก', teacher: '', room: '' },
+                { sub: 'ว20211', teacher: 'ครู สุรัิมภา', room: '126' },
+                { sub: '-', teacher: '', room: '' },
+                { sub: 'พ23104', teacher: 'ครู รัญชนา', room: 'อาคาร 10 ชั้น 3' },
+                { sub: 'ง20212', teacher: 'ครู จีน1', room: '6316' },
+                { sub: '-', teacher: '', room: '' },
+                { sub: '-', teacher: '', room: '' }
+            ]},
+            { day: 'อ.', color: 'bg-pink-400/30', hover: 'hover:bg-pink-100/40', slots: [
+                { sub: 'พ23103', teacher: 'ครู ภานุพิฐพัทธ์', room: '6316' },
+                { sub: 'ท23102', teacher: 'ครู พัชรี', room: '6316' },
+                { sub: 'ค23102', teacher: 'ครู วิไลลักษณ์', room: '931' },
+                { sub: 'พัก', teacher: '', room: '' },
+                { sub: 'ส23106', teacher: 'ครู สุภารัตน์', room: '6316' },
+                { sub: 'จ20208', teacher: 'ครู ณัฐชาติ', room: '6316' },
+                { sub: 'ค23202', teacher: 'ครู ณรงค์ศักดิ์', room: '6316' },
+                { sub: 'ว23102', teacher: 'ครู ณิชมน', room: '335' },
+                { sub: 'ค 23102', teacher: 'ครู ภิมข์', room: '9310' },
+                { sub: '-', teacher: '', room: '' }
+            ]},
+            { day: 'พ.', color: 'bg-green-400/30', hover: 'hover:bg-green-100/40', slots: [
+                { sub: 'อ23212', teacher: 'ครู MEP1', room: '6316' },
+                { sub: 'จ20208', teacher: 'ครู ณัฐชาติ', room: '6316' },
+                { sub: 'ส23104', teacher: 'ครู อมรรัตน์', room: '6316' },
+                { sub: 'พัก', teacher: '', room: '' },
+                { sub: 'ค23102', teacher: 'ครู ณรงค์ศักดิ์', room: '6316' },
+                { sub: 'อ23102', teacher: 'ครู ปริญญา', room: '6316' },
+                { sub: 'ท23102', teacher: 'ครู พัชรี', room: '6316' },
+                { sub: 'กิจกรรมคณะ', teacher: 'นักเรียน', room: '' },
+                { sub: '-', teacher: '', room: '' },
+                { sub: '-', teacher: '', room: '' }
+            ]},
+            { day: 'พฤ.', color: 'bg-orange-400/30', hover: 'hover:bg-orange-100/40', slots: [
+                { sub: 'อ23102', teacher: 'ครู ปริญญา', room: '6316' },
+                { sub: 'ง23101', teacher: 'ครู พรนารายณ์', room: '916' },
+                { sub: '-', teacher: '', room: '' },
+                { sub: 'พัก', teacher: '', room: '' },
+                { sub: 'ส23104', teacher: 'ครู อมรรัตน์', room: '6316' },
+                { sub: 'ค23202', teacher: 'ครู ณรงค์ศักดิ์', room: '6316' },
+                { sub: 'ลูกเสือ-เนตร', teacher: 'นารี ม.3', room: '' },
+                { sub: 'ประชุมระดับ', teacher: 'ม.3', room: '' },
+                { sub: '-', teacher: '', room: '' },
+                { sub: '-', teacher: '', room: '' }
+            ]},
+            { day: 'ศ.', color: 'bg-blue-400/30', hover: 'hover:bg-blue-100/40', slots: [
+                { sub: 'ว23102', teacher: 'ครู ณิชมน', room: '335' },
+                { sub: 'ค23102', teacher: 'ครู ณรงค์ศักดิ์', room: '6316' },
+                { sub: '-', teacher: '', room: '' },
+                { sub: 'พัก', teacher: '', room: '' },
+                { sub: 'ท23102', teacher: 'ครู พัชรี', room: '6316' },
+                { sub: 'จ20212', teacher: 'ครู จีน1', room: '6316' },
+                { sub: 'ส23105', teacher: 'ครู ธีรภัทร', room: '' },
+                { sub: 'ชุมนุม', teacher: '', room: '' },
+                { sub: '-', teacher: '', room: '' },
+                { sub: '-', teacher: '', room: '' }
+            ]}
+        ];
+        let scheduleData = JSON.parse(localStorage.getItem('surasak_schedule_v2569')) || initialSurasakSchedule;
+
+        function renderSchedule() {
+            const tbody = document.getElementById('schedule-body');
+            tbody.innerHTML = '';
+            scheduleData.forEach((row, r) => {
+                const tr = document.createElement('tr');
+                tr.className = `${row.hover} transition`;
+                let html = `<td class="p-2 font-bold ${row.color} border-r border-gray-200">${row.day}</td>`;
+                row.slots.forEach((slot, c) => {
+                    if (slot.sub === 'พัก') html += `<td class="p-1.5 border-r border-gray-200 bg-gray-100/60 font-semibold text-gray-500">พัก</td>`;
+                    else if (isAdmin) {
+                        html += `<td class="p-1 border-r border-gray-200 bg-amber-50/30 hover:bg-amber-100 cursor-pointer" onclick="editSlot(${r}, ${c})">
+                            <b class="text-indigo-600">${escapeHtml(slot.sub)}</b><br><span class="text-[11px]">${escapeHtml(slot.teacher)}</span><br><span class="text-[10px] text-gray-400">${escapeHtml(slot.room)}</span></td>`;
+                    } else {
+                        html += `<td class="p-1.5 border-r border-gray-200"><b>${escapeHtml(slot.sub)}</b><br>${slot.teacher ? escapeHtml(slot.teacher)+'<br>' : ''}<span class="text-[10px] text-gray-400">${escapeHtml(slot.room)}</span></td>`;
+                    }
+                });
+                tr.innerHTML = html;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function editSlot(r, c) {
+            const curr = scheduleData[r].slots[c];
+            const newSub = prompt("แก้ไขชื่อวิชา/รหัสวิชา:", curr.sub); if (newSub === null) return;
+            const newTeacher = prompt("แก้ไขครูผู้สอน:", curr.teacher); if (newTeacher === null) return;
+            const newRoom = prompt("แก้ไขห้องเรียน:", curr.room); if (newRoom === null) return;
+            scheduleData[r].slots[c] = { sub: newSub.trim() || '-', teacher: newTeacher.trim(), room: newRoom.trim() };
+            localStorage.setItem('surasak_schedule_v2569', JSON.stringify(scheduleData));
+            renderSchedule();
+        }
+
+        let todos = JSON.parse(localStorage.getItem('homework_todos_surasak_v1')) || [
+            { id: 1, subject: 'ค23102', task: 'ทำแบบฝึกหัดคณิตศาสตร์เพิ่มเติม หน้า 45', dueDate: '2026-10-28', createdTime: '28/10/2569 16:00', completed: false }
+        ];
+        let currentFilter = 'all';
+
+        const defaultTargetDate = new Date(2026, 9, 28);
+        document.getElementById('date-display').innerText = '📅 ' + defaultTargetDate.toLocaleDateString('th-TH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        document.getElementById('todo-duedate').valueAsDate = defaultTargetDate;
+
+        document.getElementById('todo-form').addEventListener('submit', (e) => {
             e.preventDefault();
-            if (WEB_APP_URL.includes("ใส่_URL")) { alert('กรุณาใส่ URL ก่อนครับ'); return; }
-
-            const btn = document.getElementById('submit-btn');
-            btn.innerText = "กำลังบันทึก...";
-            btn.disabled = true;
-
             const now = new Date();
-            const newTodo = {
-                action: "addTodo",
+            todos.unshift({
                 id: Date.now(),
                 subject: document.getElementById('todo-subject').value.trim(),
                 task: document.getElementById('todo-task').value.trim(),
                 dueDate: document.getElementById('todo-duedate').value,
-                createdTime: `${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()+543} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`
-            };
-
-            await fetch(WEB_APP_URL, {
-                method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(newTodo)
+                createdTime: `${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()+543} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`,
+                completed: false
             });
-
-            setTimeout(() => {
-                document.getElementById('todo-subject').value = '';
-                document.getElementById('todo-task').value = '';
-                btn.innerText = "บันทึกและส่งให้เพื่อนเห็นทันที";
-                btn.disabled = false;
-                fetchTodos();
-            }, 1000);
+            localStorage.setItem('homework_todos_surasak_v1', JSON.stringify(todos));
+            renderTodos();
+            document.getElementById('todo-subject').value = ''; 
+            document.getElementById('todo-task').value = '';
         });
 
-        async function toggleTodo(id) {
-            await fetch(WEB_APP_URL, {
-                method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ action: "toggleTodo", id: id })
-            });
-            setTimeout(fetchTodos, 800);
+        function toggleTodo(id) { 
+            todos = todos.map(t => t.id === id ? { ...t, completed: !t.completed } : t); 
+            localStorage.setItem('homework_todos_surasak_v1', JSON.stringify(todos)); 
+            renderTodos(); 
         }
 
-        async function deleteTodo(id) {
-            if(!confirm("ต้องการลบรายการนี้ใช่ไหม?")) return;
-            await fetch(WEB_APP_URL, {
-                method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ action: "deleteTodo", id: id })
-            });
-            setTimeout(fetchTodos, 800);
+        function deleteTodo(id) { 
+            if(confirm("ลบรายการการบ้านนี้?")) { 
+                todos = todos.filter(t => t.id !== id); 
+                localStorage.setItem('homework_todos_surasak_v1', JSON.stringify(todos)); 
+                renderTodos(); 
+            } 
         }
 
-        function renderTodos(todos) {
+        function filterTodos(f) { 
+            currentFilter = f; 
+            renderTodos(); 
+        }
+
+        function renderTodos() {
+            let list = todos;
+            if (currentFilter === 'active') list = todos.filter(t => !t.completed);
+            if (currentFilter === 'completed') list = todos.filter(t => t.completed);
+            document.getElementById('task-counter').innerText = `📌 การบ้านทั้งหมด ${list.length} รายการ`;
             const ul = document.getElementById('todo-list');
             ul.innerHTML = '';
-            if (todos.length === 0) {
-                ul.innerHTML = '<div class="text-center py-6 text-gray-400 text-xs">🎉 ไม่มีภาระงานการบ้านในขณะนี้!</div>';
-                return;
-            }
-            todos.forEach(t => {
+            if (list.length === 0) { document.getElementById('empty-state').classList.remove('hidden'); return; }
+            document.getElementById('empty-state').classList.add('hidden');
+            list.forEach(t => {
                 const li = document.createElement('li');
                 li.className = `flex items-center justify-between p-3 rounded-2xl border ${t.completed ? 'bg-gray-100/60 line-through text-gray-400' : 'bg-white/90 border-pink-100 shadow-sm'}`;
                 li.innerHTML = `
@@ -139,17 +546,215 @@
                         <input type="checkbox" ${t.completed ? 'checked' : ''} class="mt-1">
                         <div>
                             <span class="block font-semibold text-xs text-pink-600">${escapeHtml(t.subject)}</span>
-                            <span class="text-[10px] text-gray-400">🕒 ${t.createdTime} | 📅 กำหนดส่ง: ${t.dueDate}</span>
+                            <span class="text-[10px] text-gray-400">🕒 ลงเมื่อ: ${t.createdTime} | 📅 กำหนดส่ง: ${t.dueDate}</span>
                             <p class="text-xs font-medium text-gray-800">${escapeHtml(t.task)}</p>
                         </div>
                     </div>
-                    <button onclick="deleteTodo(${t.id})" class="text-red-400 p-1 hover:text-red-600">🗑️</button>
+                    ${isAdmin ? `<button onclick="deleteTodo(${t.id})" class="text-red-400 p-1">🗑️</button>` : ''}
                 `;
                 ul.appendChild(li);
             });
         }
 
+        let classImages = JSON.parse(localStorage.getItem('class_images_surasak_v1')) || [];
+        function uploadClassImage(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                classImages.unshift({ id: Date.now(), url: evt.target.result, date: '28 ตุลาคม 2569' });
+                localStorage.setItem('class_images_surasak_v1', JSON.stringify(classImages));
+                renderClassImages();
+            }
+            reader.readAsDataURL(file);
+        }
+        function renderClassImages() {
+            const gallery = document.getElementById('class-images-gallery');
+            if (classImages.length === 0) { gallery.innerHTML = '<p class="text-xs text-gray-400 col-span-2 text-center py-6">ยังไม่มีรูปภาพสรุปการเรียน</p>'; return; }
+            gallery.innerHTML = classImages.map(img => `
+                <div class="bg-white/80 p-2 rounded-2xl shadow-sm border border-white">
+                    <img src="${img.url}" class="w-full h-48 object-cover rounded-xl mb-1">
+                    <span class="text-[10px] text-gray-500">📅 ${img.date}</span>
+                </div>
+            `).join('');
+        }
+
+        let attendanceData = JSON.parse(localStorage.getItem('attendance_surasak_v1')) || [
+            { id: 1, date: '2026-10-28', present: 40, absent: 0 }
+        ];
+        function saveAttendance(e) {
+            e.preventDefault();
+            attendanceData.unshift({
+                id: Date.now(),
+                date: document.getElementById('att-date').value,
+                present: document.getElementById('att-present').value,
+                absent: document.getElementById('att-absent').value
+            });
+            localStorage.setItem('attendance_surasak_v1', JSON.stringify(attendanceData));
+            renderAttendance();
+        }
+        function renderAttendance() {
+            const cards = document.getElementById('attendance-cards');
+            cards.innerHTML = attendanceData.map(a => `
+                <div class="bg-white/80 p-4 rounded-2xl border border-indigo-100 shadow-sm flex justify-between items-center">
+                    <div>
+                        <span class="text-xs font-bold text-indigo-600">📅 ${a.date}</span>
+                        <p class="text-xs text-gray-600 font-medium mt-1">ลา ${a.absent} คน | มา ${a.present} คน</p>
+                    </div>
+                    <span class="text-2xl">🏫</span>
+                </div>
+            `).join('');
+        }
+
+        let qrcodes = JSON.parse(localStorage.getItem('qrcodes_surasak_v1')) || [];
+        let activeTerm = 2;
+
+        function switchTerm(term) {
+            activeTerm = term;
+            document.getElementById('term1-btn').className = term === 1 ? 'px-4 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-medium' : 'px-4 py-1.5 rounded-xl bg-white/60 text-gray-700 text-xs font-medium';
+            document.getElementById('term2-btn').className = term === 2 ? 'px-4 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-medium' : 'px-4 py-1.5 rounded-xl bg-white/60 text-gray-700 text-xs font-medium';
+            renderQrcodes();
+        }
+        function openQrModal() { document.getElementById('qr-modal').classList.remove('hidden'); }
+        function closeQrModal() { document.getElementById('qr-modal').classList.add('hidden'); }
+
+        function saveQrCode() {
+            const term = document.getElementById('qr-term-select').value;
+            const subject = document.getElementById('qr-subject-input').value.trim();
+            const file = document.getElementById('qr-file-input').files[0];
+            if (!subject || !file) { alert('กรุณากรอกวิชาและเลือกรูปภาพ'); return; }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                qrcodes.unshift({ id: Date.now(), term: parseInt(term), subject: subject, url: e.target.result });
+                localStorage.setItem('qrcodes_surasak_v1', JSON.stringify(qrcodes));
+                renderQrcodes();
+                closeQrModal();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function renderQrcodes() {
+            const gallery = document.getElementById('qrcode-gallery');
+            const list = qrcodes.filter(q => q.term === activeTerm);
+            if (list.length === 0) { gallery.innerHTML = '<p class="text-xs text-gray-400 col-span-4 text-center py-6">ยังไม่มี QR Code ในเทอมนี้</p>'; return; }
+            gallery.innerHTML = list.map(q => `
+                <div class="relative group bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
+                    <img src="${q.url}" class="w-full h-36 object-contain rounded-xl">
+                    <div class="absolute bottom-2 left-2 bg-black/70 text-white text-[10px] px-2 py-0.5 rounded-md backdrop-blur-sm">
+                        ${escapeHtml(q.subject)}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        let currentRating = 0;
+        let starRatings = JSON.parse(localStorage.getItem('star_ratings_surasak_v1')) || [];
+
+        function setRating(r) {
+            currentRating = r;
+            const stars = document.getElementById('star-rating').children;
+            for(let i=0; i<5; i++) stars[i].style.color = i < r ? '#f59e0b' : '#d1d5db';
+            document.getElementById('rating-status').innerText = `คุณให้คะแนน ${r} ดาว ขอบคุณครับ!`;
+            
+            starRatings.push(r);
+            localStorage.setItem('star_ratings_surasak_v1', JSON.stringify(starRatings));
+            updateStarSummary();
+        }
+
+        function updateStarSummary() {
+            if (starRatings.length === 0) return;
+            const avg = (starRatings.reduce((a,b)=>a+b,0)/starRatings.length).toFixed(1);
+            document.getElementById('admin-stars-summary').innerText = `⭐ คะแนนประเมินจากผู้ใช้งาน: เฉลี่ย ${avg} ดาว (${starRatings.length} คนประเมิน)`;
+        }
+
+        let reports = JSON.parse(localStorage.getItem('system_reports_surasak_v1')) || [];
+        function openModal() { document.getElementById('report-modal').classList.remove('hidden'); }
+        function closeModal() { document.getElementById('report-modal').classList.add('hidden'); }
+
+        function submitError() {
+            const input = document.getElementById('error-input');
+            const warn = document.getElementById('profanity-warn');
+            const text = input.value.trim();
+
+            if (!text) { alert('กรุณากรอกข้อความ'); return; }
+
+            const hasBadWord = badWords.some(word => text.includes(word));
+            if (hasBadWord) {
+                warn.classList.remove('hidden');
+                return;
+            }
+            warn.classList.add('hidden');
+
+            reports.unshift({ id: Date.now(), text: text, time: '28 ตุลาคม 2569' });
+            localStorage.setItem('system_reports_surasak_v1', JSON.stringify(reports));
+            renderReports();
+
+            alert('ขอบคุณที่แจ้งข้อผิดพลาดครับ! แอดมินจะรีบตรวจสอบให้ครับ 🙇‍♂️');
+            input.value = '';
+            closeModal();
+        }
+
+        function renderReports() {
+            const container = document.getElementById('reports-list');
+            if (reports.length === 0) { container.innerHTML = '<div class="text-gray-400 text-center py-2">ไม่มีรายงาน</div>'; return; }
+            container.innerHTML = reports.map(r => `
+                <div class="p-2 bg-white/80 rounded-xl border border-rose-100">
+                    <p class="text-gray-800 font-medium">${escapeHtml(r.text)}</p>
+                    <span class="text-[10px] text-gray-400">🕒 ${r.time}</span>
+                </div>
+            `).join('');
+        }
+        function clearReports() { reports = []; localStorage.setItem('system_reports_surasak_v1', JSON.stringify(reports)); renderReports(); }
+
+        function openAdminModal() { document.getElementById('admin-modal').classList.remove('hidden'); }
+        function closeAdminModal() { document.getElementById('admin-modal').classList.add('hidden'); document.getElementById('admin-pin').value = ''; }
+
+        function verifyAdminPin() {
+            if (document.getElementById('admin-pin').value === '012345') {
+                isAdmin = true;
+                closeAdminModal();
+                updateRoleUI();
+                alert('🔑 เข้าสู่ระบบ Admin เรียบร้อย!');
+            } else { alert('❌ รหัส PIN ไม่ถูกต้อง!'); }
+        }
+        function logoutAdmin() { isAdmin = false; updateRoleUI(); alert('🚪 ออกจากระบบแล้ว'); }
+
+        function updateRoleUI() {
+            const badge = document.getElementById('role-badge');
+            const btnCont = document.getElementById('admin-btn-container');
+
+            if (isAdmin) {
+                badge.className = "bg-rose-500 text-white text-xs px-3 py-1.5 rounded-full font-semibold animate-pulse";
+                badge.innerText = "🛡️ แอดมิน (Admin Mode)";
+                btnCont.innerHTML = `<button onclick="logoutAdmin()" class="bg-rose-600 text-white font-medium px-5 py-2.5 rounded-full text-xs">🚪 ออกจากระบบ Admin</button>`;
+                
+                document.getElementById('todo-form').classList.remove('hidden');
+                document.getElementById('admin-reports-box').classList.remove('hidden');
+                document.getElementById('admin-table-hint').classList.remove('hidden');
+                document.getElementById('btn-add-class-img').classList.remove('hidden');
+                document.getElementById('attendance-admin-form').classList.remove('hidden');
+                document.getElementById('btn-add-qr').classList.remove('hidden');
+            } else {
+                badge.className = "bg-gray-200/80 text-gray-600 text-xs px-3 py-1.5 rounded-full border border-gray-300 font-medium";
+                badge.innerText = "👤 ผู้ใช้ทั่วไป";
+                btnCont.innerHTML = `<button onclick="openAdminModal()" class="bg-indigo-600 text-white font-medium px-5 py-2.5 rounded-full text-xs">🔑 เข้าสู่ระบบ Admin</button>`;
+
+                document.getElementById('todo-form').classList.add('hidden');
+                document.getElementById('admin-reports-box').classList.add('hidden');
+                document.getElementById('admin-table-hint').classList.add('hidden');
+                document.getElementById('btn-add-class-img').classList.add('hidden');
+                document.getElementById('attendance-admin-form').classList.add('hidden');
+                document.getElementById('btn-add-qr').classList.add('hidden');
+            }
+            renderSchedule(); renderTodos(); renderClassImages(); renderAttendance(); renderQrcodes(); renderReports(); updateStarSummary();
+        }
+
         function escapeHtml(t) { const d = document.createElement('div'); d.innerText = t || ''; return d.innerHTML; }
+
+        switchTerm(2);
+        updateRoleUI();
     </script>
 </body>
 </html>
+เว็บไซต์นี้มีปัญหาครับ คือ เวลาลงเวลาการบ้านและเช็กลิตส์ใว้แล้ว ไม่บันทึก หรือส่งต่อให้คนแล้วไม่บันทึกสิ่งที่ทำใว้ครับ ก็เลยช่วยดูให้หน่อย ผมอย่ากได้แบบ พิมพ์เสร็จส่งให้คนต่อไปก็สามารถเห็นเช็กลิตส์การบ้านที่พึ่งพิมโดยเราครับ
